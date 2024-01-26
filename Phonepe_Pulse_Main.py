@@ -8,16 +8,6 @@ from streamlit_option_menu import option_menu
 from PIL import Image
 from git.repo.base import Repo
 
-# Setting up page configuration
-#icon = Image.open("phnp.png")
-#st.set_page_config(page_title= "Phonepe Pulse Data Visualization",
-#                   page_icon= icon,
-#                   layout= "wide",
-# #                  initial_sidebar_state= "expanded",
-#                   menu_items={'About': "# Data has been cloned from Phonepe Pulse Github Repo"})
-
-#st.sidebar.header(":violet[**Hello! Welcome to the Phonepe Pulse Data Visualization Dashboard**]")
-
 
 # Creating connection with mysql workbench
 mydb = sql.connect(host="127.0.0.1",
@@ -35,10 +25,6 @@ with st.sidebar:
                 icons=["house","graph-up-arrow","toggles","bar-chart", "at"],
                 menu_icon= "menu-button-wide",
                 default_index=2,
-                #styles={"nav-link": {"font-size": "20px", "text-align": "left", "margin": "-2px", "--hover-color": "#6F36AD"},
-                        #"nav-link-selected": {"background-color": "#6F36AD"}})
-                
-
                 styles={"container": {"padding": "0!important", "background-color": "white","size":"cover", "width": "100%"},
                     "icon": {"color": "black", "font-size": "20px"},
                     "nav-link": {"font-size": "20px", "text-align": "lef", "margin": "-2px", "--hover-color": "#6F36AD"},
@@ -189,8 +175,6 @@ if selected == "Basic insights":
                "List 10 Districts based on states and amount of transaction",
                "List 10 Transaction_Count based on Districts and states",
                "Top 10 RegisteredUsers based on states and District"]
-    
-       #1
                
     select = st.selectbox("Select the option",options)
     if select=="Top 10 states based on year and amount of transaction":
@@ -213,8 +197,6 @@ if selected == "Basic insights":
             st.title("List 10 states based on type and amount of transaction")
             st.bar_chart(data=df,x="Total_Transaction_Amount",y="States")
             
-            #3
-            
     elif select == "Top 5 Transaction_Type based on Transaction_Amount":
         mycursor.execute("SELECT transaction_type, SUM(Transaction_amount) AS total_transaction_amount FROM agg_trans GROUP BY transaction_type ORDER BY total_transaction_amount DESC LIMIT 5;")
         df = pd.DataFrame(mycursor.fetchall(), columns=['Transaction_Type', 'Transaction_Amount'])
@@ -224,8 +206,6 @@ if selected == "Basic insights":
         with col2:
             st.title("Top 5 Transaction_Type based on Transaction_Amount")
             st.bar_chart(data=df, y="Transaction_Type", x="Transaction_Amount")
-
-            #4
             
     elif select=="Top 10 Registered-users based on States and District":
         mycursor.execute("SELECT state, district, SUM(Registered_user) AS total_registered_users FROM map_user GROUP BY state, district ORDER BY total_registered_users DESC LIMIT 10; ");
@@ -236,9 +216,7 @@ if selected == "Basic insights":
         with col2:
             st.title("Top 10 Registered-users based on States and District")
             st.bar_chart(data=df,y="State",x="RegisteredUsers")
-            
-            #5
-            
+           
     elif select=="Top 10 Districts based on states and Count of transaction":
         mycursor.execute("SELECT state, district, COUNT(*) AS transaction_count FROM map_trans GROUP BY state, district ORDER BY transaction_count DESC LIMIT 10;");
         df = pd.DataFrame(mycursor.fetchall(),columns=['States','District','Transaction_Count'])
@@ -248,8 +226,6 @@ if selected == "Basic insights":
         with col2:
             st.title("Top 10 Districts based on states and Count of transaction")
             st.bar_chart(data=df,y="States",x="Transaction_Count")
-            
-            #6
             
     elif select=="List 10 Districts based on states and amount of transaction":
         mycursor.execute("SELECT state, district, SUM(Transaction_amount) AS total_transaction_amount FROM map_trans GROUP BY state, district ORDER BY total_transaction_amount DESC LIMIT 10;");
@@ -261,8 +237,6 @@ if selected == "Basic insights":
             st.title("Least 10 Districts based on states and amount of transaction")
             st.bar_chart(data=df,y="States",x="Transaction_Amount")
             
-            #7
-            
     elif select=="List 10 Transaction_Count based on Districts and states":
         mycursor.execute("SELECT state, district, COUNT(*) AS transaction_count FROM map_trans GROUP BY state, district ORDER BY transaction_count DESC LIMIT 10;");
         df = pd.DataFrame(mycursor.fetchall(),columns=['States','District','Transaction_Count'])
@@ -272,8 +246,6 @@ if selected == "Basic insights":
         with col2:
             st.title("List 10 Transaction_Count based on Districts and states")
             st.bar_chart(data=df,y="States",x="Transaction_Count")
-            
-            #8
              
     elif select=="Top 10 RegisteredUsers based on states and District":
         mycursor.execute("SELECT state, district, SUM(Registered_User) AS total_registered_users FROM map_user GROUP BY state, district ORDER BY total_registered_users DESC LIMIT 10;");
@@ -285,9 +257,6 @@ if selected == "Basic insights":
             st.title("Top 10 Registered_User based on states and District")
             st.bar_chart(data=df,y="States",x="Registered_User")
 
-
-
-
 # MENU 3 - EXPLORE DATA
 if selected == "Explore Data":
     # Use st.selectbox for Year and Quarter
@@ -296,7 +265,6 @@ if selected == "Explore Data":
     Type = st.sidebar.selectbox("**Type**", ("Transactions", "Users"))
     col1, col2 = st.columns(2)
     
-
 # EXPLORE DATA - TRANSACTIONS
     if Type == "Transactions":
         
