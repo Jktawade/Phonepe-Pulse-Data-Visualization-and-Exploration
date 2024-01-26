@@ -9,14 +9,14 @@ from PIL import Image
 from git.repo.base import Repo
 
 # Setting up page configuration
-icon = Image.open("phnp.png")
-st.set_page_config(page_title= "Phonepe Pulse Data Visualization",
-                   page_icon= icon,
-                   layout= "wide",
-                   initial_sidebar_state= "expanded",
-                   menu_items={'About': "# Data has been cloned from Phonepe Pulse Github Repo"})
+#icon = Image.open("phnp.png")
+#st.set_page_config(page_title= "Phonepe Pulse Data Visualization",
+#                   page_icon= icon,
+#                   layout= "wide",
+# #                  initial_sidebar_state= "expanded",
+#                   menu_items={'About': "# Data has been cloned from Phonepe Pulse Github Repo"})
 
-st.sidebar.header(":wave: :violet[**Hello! Welcome to the Phonepe Pulse Data Visualization Dashboard**]")
+#st.sidebar.header(":violet[**Hello! Welcome to the Phonepe Pulse Data Visualization Dashboard**]")
 
 
 # Creating connection with mysql workbench
@@ -31,12 +31,19 @@ mycursor = mydb.cursor(buffered=True)
 
 # Creating option menu in the side bar
 with st.sidebar:
-    selected = option_menu("Menu", ["Home","Top Charts","Explore Data","About"], 
-                icons=["house","graph-up-arrow","bar-chart-line", "exclamation-circle"],
+    selected = option_menu("Menu", ["Home","Top Charts","Basic insights","Explore Data","About"], 
+                icons=["house","graph-up-arrow","toggles","bar-chart", "at"],
                 menu_icon= "menu-button-wide",
-                default_index=0,
-                styles={"nav-link": {"font-size": "20px", "text-align": "left", "margin": "-2px", "--hover-color": "#6F36AD"},
-                        "nav-link-selected": {"background-color": "#6F36AD"}})
+                default_index=2,
+                #styles={"nav-link": {"font-size": "20px", "text-align": "left", "margin": "-2px", "--hover-color": "#6F36AD"},
+                        #"nav-link-selected": {"background-color": "#6F36AD"}})
+                
+
+                styles={"container": {"padding": "0!important", "background-color": "white","size":"cover", "width": "100%"},
+                    "icon": {"color": "black", "font-size": "20px"},
+                    "nav-link": {"font-size": "20px", "text-align": "lef", "margin": "-2px", "--hover-color": "#6F36AD"},
+                    "nav-link-selected": {"background-color": "#6F36AD"}})
+                
 # MENU 1 - HOME
 if selected == "Home":
     st.image("phonepe.png",width = 500)
@@ -57,11 +64,12 @@ if selected == "Home":
 if selected == "Top Charts":
     st.markdown("## :violet[Top Charts]")
     Type = st.sidebar.selectbox("**Type**", ("Transactions", "Users"))
-    colum1,colum2= st.columns([1,1.5],gap="large")
+    colum1, colum2 = st.columns([1, 1.5], gap="large")
     with colum1:
-        Year = st.slider("**Year**", min_value=2018, max_value=2023)
-        Quarter = st.slider("Quarter", min_value=1, max_value=4)
+        Year = st.selectbox("**Year**", list(range(2018, 2024)))
+        Quarter = st.selectbox("Quarter", list(range(1, 5)))
     
+
     with colum2:
         st.info(
                 """
@@ -69,7 +77,7 @@ if selected == "Top Charts":
                 - Overall ranking on a particular Year and Quarter.
                 - Top 10 State, District, Pincode based on Total number of transaction and Total amount spent on phonepe.
                 - Top 10 State, District, Pincode based on Total phonepe users and their app opening frequency.
-                - Top 10 mobile brands and its percentage based on the how many people use phonepe.
+                
                 """,icon="🔍"
                 )
         
@@ -122,25 +130,10 @@ if selected == "Top Charts":
             
 # Top Charts - USERS          
     if Type == "Users":
-        col1,col2,col3,col4 = st.columns([2,2,2,2],gap="small")
+        col1,col2,col3 = st.columns([2,2,2],gap="small")
+        
         
         with col1:
-            st.markdown("### :violet[Brands]")
-            if Year == 2022 and Quarter in [2,3,4]:
-                st.markdown("#### Sorry No Data to Display for 2022 Qtr 2,3,4")
-            else:
-                mycursor.execute(f"select brands, sum(count) as Total_Count, avg(percentage)*100 as Avg_Percentage from agg_user where year = {Year} and quarter = {Quarter} group by brands order by Total_Count desc limit 10")
-                df = pd.DataFrame(mycursor.fetchall(), columns=['Brand', 'Total_Users','Avg_Percentage'])
-                fig = px.bar(df,
-                             title='Top 10',
-                             x="Total_Users",
-                             y="Brand",
-                             orientation='h',
-                             color='Avg_Percentage',
-                             color_continuous_scale=px.colors.sequential.Agsunset)
-                st.plotly_chart(fig,use_container_width=True)   
-    
-        with col2:
             st.markdown("### :violet[District]")
             mycursor.execute(f"select district, sum(Registered_User) as Total_Users, sum(app_opens) as Total_Appopens from map_user where year = {Year} and quarter = {Quarter} group by district order by Total_Users desc limit 10")
             df = pd.DataFrame(mycursor.fetchall(), columns=['District', 'Total_Users','Total_Appopens'])
@@ -154,7 +147,7 @@ if selected == "Top Charts":
                          color_continuous_scale=px.colors.sequential.Agsunset)
             st.plotly_chart(fig,use_container_width=True)
               
-        with col3:
+        with col2:
             st.markdown("### :violet[Pincode]")
             mycursor.execute(f"select Pincode, sum(Registered_Users) as Total_Users from top_user where year = {Year} and quarter = {Quarter} group by Pincode order by Total_Users desc limit 10")
             df = pd.DataFrame(mycursor.fetchall(), columns=['Pincode', 'Total_Users'])
@@ -167,7 +160,7 @@ if selected == "Top Charts":
             fig.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(fig,use_container_width=True)
             
-        with col4:
+        with col3:
             st.markdown("### :violet[State]")
             mycursor.execute(f"select state, sum(Registered_user) as Total_Users, sum(App_opens) as Total_Appopens from map_user where year = {Year} and quarter = {Quarter} group by state order by Total_Users desc limit 10")
             df = pd.DataFrame(mycursor.fetchall(), columns=['State', 'Total_Users','Total_Appopens'])
@@ -180,14 +173,130 @@ if selected == "Top Charts":
 
             fig.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(fig,use_container_width=True)
+
+
+# Basic Insights
+if selected == "Basic insights":
+    st.title("BASIC INSIGHTS")
+    st.write("----")
+    st.subheader("Let's know some basic insights about the data")
+    options = ["--select--",
+               "Top 10 states based on year and amount of transaction",
+               "List 10 states based on type and amount of transaction",
+               "Top 5 Transaction_Type based on Transaction_Amount",
+               "Top 10 Registered-users based on States and District",
+               "Top 10 Districts based on states and Count of transaction",
+               "List 10 Districts based on states and amount of transaction",
+               "List 10 Transaction_Count based on Districts and states",
+               "Top 10 RegisteredUsers based on states and District"]
+    
+       #1
+               
+    select = st.selectbox("Select the option",options)
+    if select=="Top 10 states based on year and amount of transaction":
+        mycursor.execute("SELECT state, transaction_type, SUM(Transaction_amount) AS total_transaction_amount FROM agg_trans GROUP BY state, transaction_type ORDER BY total_transaction_amount DESC LIMIT 10;")
+        df = pd.DataFrame(mycursor.fetchall(), columns=['States','Transaction_Year', 'Transaction_Amount'])
+        col1,col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("Top 10 states and amount of transaction")
+            st.bar_chart(data=df,x="Transaction_Amount",y="States")
+
+    elif select=="List 10 states based on type and amount of transaction":
+        mycursor.execute("SELECT state, transaction_type, SUM(Transaction_amount) AS total_transaction_amount FROM agg_trans GROUP BY state, transaction_type ORDER BY total_transaction_amount DESC LIMIT 10;");
+        df = pd.DataFrame(mycursor.fetchall(),columns=['States','Transaction_Type', 'Total_Transaction_Amount'])
+        col1,col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("List 10 states based on type and amount of transaction")
+            st.bar_chart(data=df,x="Total_Transaction_Amount",y="States")
             
+            #3
+            
+    elif select == "Top 5 Transaction_Type based on Transaction_Amount":
+        mycursor.execute("SELECT transaction_type, SUM(Transaction_amount) AS total_transaction_amount FROM agg_trans GROUP BY transaction_type ORDER BY total_transaction_amount DESC LIMIT 5;")
+        df = pd.DataFrame(mycursor.fetchall(), columns=['Transaction_Type', 'Transaction_Amount'])
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("Top 5 Transaction_Type based on Transaction_Amount")
+            st.bar_chart(data=df, y="Transaction_Type", x="Transaction_Amount")
+
+            #4
+            
+    elif select=="Top 10 Registered-users based on States and District":
+        mycursor.execute("SELECT state, district, SUM(Registered_user) AS total_registered_users FROM map_user GROUP BY state, district ORDER BY total_registered_users DESC LIMIT 10; ");
+        df = pd.DataFrame(mycursor.fetchall(),columns=['State','District','RegisteredUsers'])
+        col1,col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("Top 10 Registered-users based on States and District")
+            st.bar_chart(data=df,y="State",x="RegisteredUsers")
+            
+            #5
+            
+    elif select=="Top 10 Districts based on states and Count of transaction":
+        mycursor.execute("SELECT state, district, COUNT(*) AS transaction_count FROM map_trans GROUP BY state, district ORDER BY transaction_count DESC LIMIT 10;");
+        df = pd.DataFrame(mycursor.fetchall(),columns=['States','District','Transaction_Count'])
+        col1,col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("Top 10 Districts based on states and Count of transaction")
+            st.bar_chart(data=df,y="States",x="Transaction_Count")
+            
+            #6
+            
+    elif select=="List 10 Districts based on states and amount of transaction":
+        mycursor.execute("SELECT state, district, SUM(Transaction_amount) AS total_transaction_amount FROM map_trans GROUP BY state, district ORDER BY total_transaction_amount DESC LIMIT 10;");
+        df = pd.DataFrame(mycursor.fetchall(),columns=['States','Transaction_year','Transaction_Amount'])
+        col1,col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("Least 10 Districts based on states and amount of transaction")
+            st.bar_chart(data=df,y="States",x="Transaction_Amount")
+            
+            #7
+            
+    elif select=="List 10 Transaction_Count based on Districts and states":
+        mycursor.execute("SELECT state, district, COUNT(*) AS transaction_count FROM map_trans GROUP BY state, district ORDER BY transaction_count DESC LIMIT 10;");
+        df = pd.DataFrame(mycursor.fetchall(),columns=['States','District','Transaction_Count'])
+        col1,col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("List 10 Transaction_Count based on Districts and states")
+            st.bar_chart(data=df,y="States",x="Transaction_Count")
+            
+            #8
+             
+    elif select=="Top 10 RegisteredUsers based on states and District":
+        mycursor.execute("SELECT state, district, SUM(Registered_User) AS total_registered_users FROM map_user GROUP BY state, district ORDER BY total_registered_users DESC LIMIT 10;");
+        df = pd.DataFrame(mycursor.fetchall(),columns = ['States','District','Registered_User'])
+        col1,col2 = st.columns(2)
+        with col1:
+            st.write(df)
+        with col2:
+            st.title("Top 10 Registered_User based on states and District")
+            st.bar_chart(data=df,y="States",x="Registered_User")
+
+
+
+
 # MENU 3 - EXPLORE DATA
 if selected == "Explore Data":
-    Year = st.sidebar.slider("**Year**", min_value=2018, max_value=2023)
-    Quarter = st.sidebar.slider("Quarter", min_value=1, max_value=4)
+    # Use st.selectbox for Year and Quarter
+    Year = st.sidebar.selectbox("**Year**", list(range(2018, 2024)))
+    Quarter = st.sidebar.selectbox("Quarter", list(range(1, 5)))
     Type = st.sidebar.selectbox("**Type**", ("Transactions", "Users"))
-    col1,col2 = st.columns(2)
+    col1, col2 = st.columns(2)
     
+
 # EXPLORE DATA - TRANSACTIONS
     if Type == "Transactions":
         
@@ -335,3 +444,6 @@ if selected == "About":
         st.write(" ")
         st.write(" ")
         st.image("home.png")
+
+
+
